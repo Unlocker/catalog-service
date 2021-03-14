@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: r2dbc-postgresql-example
+
+liquibase:
+  change-log: classpath:/db/changelog/db.changelog-master.xml
+
+ecom-catalog:
+  datasource:
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    database: ${DB_DBNAME:order-service}
+    username: ${DB_USERNAME:order}
+    password: ${DB_PASSWORD:admin}
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin}
+
+logging:
+  level:
+    org.springframework: debug
+
