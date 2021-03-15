@@ -1,8 +1,6 @@
 package com.thepointmoscow.catalog.catalogservice
 
 import com.thepointmoscow.catalog.catalogservice.config.R2dbcConfiguration
-import com.thepointmoscow.catalog.catalogservice.domain.User
-import com.thepointmoscow.catalog.catalogservice.service.UserService
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.{AfterAll, BeforeAll, BeforeEach, Test}
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,21 +25,11 @@ import org.springframework.http.MediaType
   initializers = Array(classOf[TestEnvInitializer])
 )
 class CatalogServiceAppTests() {
-  @Autowired var userService: UserService = _
   @Autowired var appContext: ApplicationContext = _
 
   @BeforeEach
   def setUp(): Unit = {
     Hooks.onOperatorDebug()
-    val user = new User(1, "user", "Canada")
-    userService.createUser(user)
-  }
-
-  @Test
-  def testGetUsers(): Unit = {
-    userService.getUsers.as(StepVerifier.create(_))
-      .thenConsumeWhile(user => user.name == "user")
-      .verifyComplete()
   }
 
   @Test
