@@ -16,7 +16,7 @@
     <properties>
         <java.version>11</java.version>
         <r2dbc-postgresql.version>0.8.6.RELEASE</r2dbc-postgresql.version>
-        <scala-maven-plugin.version>3.2.1</scala-maven-plugin.version>
+        <scala-maven-plugin.version>3.3.1</scala-maven-plugin.version>
         <scala.version>2.13.4</scala.version>
         <testcontainer-postgres.version>1.9.1</testcontainer-postgres.version>
         <testcontainer-junit-jupiter.version>1.10.6</testcontainer-junit-jupiter.version>
@@ -160,7 +160,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <recompileMode>incremental</recompileMode>
+<!--                    <recompileMode>incremental</recompileMode>-->
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
                         <arg>-deprecation</arg>
