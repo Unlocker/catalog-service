@@ -26,12 +26,14 @@ class ItemHandler(service: ItemService) {
     } else {
       service.findAll(taxId, maybePage, maybeSize)
     }
-    val (items, _, _) = result
-    items.map(ItemView.apply).collectList().flatMap(
-      ServerResponse.ok()
-        .contentType(APPLICATION_JSON)
-        .bodyValue(_)
-    )
+    result.flatMapMany(_.items)
+      .map(ItemView.apply)
+      .collectList()
+      .flatMap(
+        ServerResponse.ok()
+          .contentType(APPLICATION_JSON)
+          .bodyValue(_)
+      )
   }
 
   def create(serverRequest: ServerRequest): Mono[ServerResponse] = {

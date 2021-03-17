@@ -1,6 +1,6 @@
 package com.thepointmoscow.catalog.catalogservice.service
 
-import com.thepointmoscow.catalog.catalogservice.domain.Item
+import com.thepointmoscow.catalog.catalogservice.domain.{Item, Selection}
 import com.thepointmoscow.catalog.catalogservice.repository.ItemRepository
 import com.thepointmoscow.catalog.catalogservice.web.views.ItemInitView
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,19 +18,21 @@ class ItemService(private val repo: ItemRepository) {
     PageRequest.of(page, size, Sort.by("name"))
   }
 
-  def findAll(taxId: String, maybePage: Option[Int], maybeSize: Option[Int]): (Flux[Item], Int, Int) = {
+  def findAll(taxId: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
-    (repo.findAllByTaxIdentity(taxId, pageInfo), pageInfo.getPageNumber, pageInfo.getPageSize)
+    val totalPages = repo.countByTaxIdentity(taxId).map(count => Math.ceil(count.toDouble / pageInfo.getPageSize).toInt)
+    totalPages.map(tp => Selection(repo.findAllByTaxIdentity(taxId, pageInfo), pageInfo.getPageNumber, tp, pageInfo.getPageSize))
   }
 
-  def findByName(taxId: String, name: String, maybePage: Option[Int], maybeSize: Option[Int]): (Flux[Item], Int, Int) = {
+  def findByName(taxId: String, name: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
-    (repo.findAllByTaxIdentityEqualsAndNameIsLike(taxId, name, pageInfo), pageInfo.getPageNumber, pageInfo.getPageSize)
+    val totalPages = repo.countByTaxIdentityAndNameIsLike(taxId, name).map(count => Math.ceil(count.toDouble / pageInfo.getPageSize).toInt)
+    totalPages.map(tp => Selection(repo.findAllByTaxIdentityEqualsAndNameIsLike(taxId, name, pageInfo), pageInfo.getPageNumber, tp, pageInfo.getPageSize))
   }
 
-  def findBySku(taxId: String, sku: String, maybePage: Option[Int], maybeSize: Option[Int]): (Flux[Item], Int, Int) = {
+  def findBySku(taxId: String, sku: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
-    (repo.findAllByTaxIdentityEqualsAndSkuEquals(taxId, sku, pageInfo), pageInfo.getPageNumber, pageInfo.getPageSize)
+    Mono.just(1).map(tp => Selection(repo.findAllByTaxIdentityEqualsAndSkuEquals(taxId, sku, pageInfo), pageInfo.getPageNumber, tp, pageInfo.getPageSize))
   }
 
   def create(taxId: String, init: ItemInitView): Mono[Item] = {
