@@ -23,11 +23,12 @@ class SecurityConfiguration {
   @Bean
   def springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain = {
     http
-      .authorizeExchange()
-      .pathMatchers("/api/v1/items/**").hasRole("ADMIN")
-      .anyExchange().permitAll()
-      .and()
+      .csrf().disable()
       .httpBasic()
+      .and()
+      .authorizeExchange()
+      .pathMatchers("/api/v1/items/**").hasAnyRole("ADMIN")
+      .anyExchange().permitAll()
     http.build()
   }
 

@@ -16,6 +16,7 @@ import org.testcontainers.junit.jupiter.{Container, Testcontainers}
 import reactor.core.publisher.Hooks
 import reactor.test.StepVerifier
 import org.springframework.http.MediaType
+import org.springframework.web.reactive.function.client.{ExchangeFunction, WebClient}
 
 @ExtendWith(Array(classOf[SpringExtension]))
 @SpringBootTest(
@@ -27,22 +28,55 @@ import org.springframework.http.MediaType
 class CatalogServiceAppTests() {
   @Autowired var appContext: ApplicationContext = _
 
+  var webClient: WebTestClient = _
+
   @BeforeEach
   def setUp(): Unit = {
+    webClient = WebTestClient.bindToApplicationContext(appContext).build()
     Hooks.onOperatorDebug()
   }
 
   @Test
-  def testGetOneItem(): Unit = {
-    val webClient = WebTestClient.bindToApplicationContext(appContext).build()
+  def testGetItemsForTaxId(): Unit = {
     webClient.get()
       .uri("/api/v1/items/{taxid}", "7708317992")
-      .headers(headers => headers.setBasicAuth("admin", "admin"))
+      .headers(_.setBasicAuth("admin", "admin"))
       .exchange()
       .expectStatus().isOk()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody()
+      .jsonPath("$.code").isEqualTo(0)
       .jsonPath("$..sku").isNotEmpty()
+  }
+
+  @Test
+  def testGetOneItemForSku(): Unit = {
+    webClient.get()
+      .uri("/api/v1/items/{taxid}?sku={sku}", "7708317992", "ФН-36")
+      .headers(_.setBasicAuth("admin", "admin"))
+      .exchange()
+      .expectStatus().isOk()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$.code").isEqualTo(0)
+      .jsonPath("$.payload").isNotEmpty()
+      .jsonPath("$.payload[0].sku").isEqualTo("ФН-36")
+  }
+
+  @Test
+  def testDuplicateItem(): Unit = {
+    webClient.post()
+      .uri("/api/v1/items/{taxid}", "7708317992")
+      .headers(_.setBasicAuth("admin", "admin"))
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue("""{"name":"FN-36","sku":"ФН-36","price":100.00}""")
+      .exchange()
+      .expectStatus().isBadRequest()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$.code").isEqualTo(400)
+      .jsonPath("$.payload").isEmpty()
+      .jsonPath("$.message").isEqualTo("Товар с указанным кодом SKU уже существует")
   }
 
 }
