@@ -45,8 +45,11 @@ class CatalogServiceAppTests() {
       .expectStatus().isOk()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody()
-      .jsonPath("$.code").isEqualTo(0)
-      .jsonPath("$..sku").isNotEmpty()
+      .jsonPath("$.errorCode").isEqualTo(0)
+      .jsonPath("$.payload.currentPage").isEqualTo(1)
+      .jsonPath("$.payload.totalPages").isEqualTo(1)
+      .jsonPath("$.payload.size").isEqualTo(50)
+      .jsonPath("$.payload.items").isNotEmpty()
   }
 
   @Test
@@ -58,9 +61,12 @@ class CatalogServiceAppTests() {
       .expectStatus().isOk()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody()
-      .jsonPath("$.code").isEqualTo(0)
+      .jsonPath("$.errorCode").isEqualTo(0)
       .jsonPath("$.payload").isNotEmpty()
-      .jsonPath("$.payload[0].sku").isEqualTo("ФН-36")
+      .jsonPath("$.payload.currentPage").isEqualTo(1)
+      .jsonPath("$.payload.totalPages").isEqualTo(1)
+      .jsonPath("$.payload.size").isEqualTo(50)
+      .jsonPath("$.payload.items[0].sku").isEqualTo("ФН-36")
   }
 
   @Test
@@ -74,10 +80,32 @@ class CatalogServiceAppTests() {
       .expectStatus().isBadRequest()
       .expectHeader().contentType(MediaType.APPLICATION_JSON)
       .expectBody()
-      .jsonPath("$.code").isEqualTo(400)
+      .jsonPath("$.errorCode").isEqualTo(400)
       .jsonPath("$.payload").isEmpty()
-      .jsonPath("$.message").isEqualTo("Товар с указанным кодом SKU уже существует")
+      .jsonPath("$.error").isEqualTo("Товар с указанным кодом SKU уже существует")
   }
+
+  @Test
+  def testCreateItem(): Unit = {
+    webClient.post()
+      .uri("/api/v1/items/{taxid}", "7708317992")
+      .headers(_.setBasicAuth("admin", "admin"))
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue("""{"name":"Тестовая услуга","sku":"SERV-01","price":100.00, "vatType": "vat20", "paymentObject": "service"}""")
+      .exchange()
+      .expectStatus().isOk()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$.errorCode").isEqualTo(0)
+      .jsonPath("$.payload").isNotEmpty()
+      .jsonPath("$.payload.name").isEqualTo("Тестовая услуга")
+      .jsonPath("$.payload.sku").isEqualTo("SERV-01")
+      .jsonPath("$.payload.price").isEqualTo(100.00)
+      .jsonPath("$.payload.vatType").isEqualTo("vat20")
+      .jsonPath("$.payload.paymentObject").isEqualTo("service")
+  }
+
+
 
 }
 

@@ -1,15 +1,15 @@
 package com.thepointmoscow.catalog.catalogservice.web.handler
 
+import com.thepointmoscow.catalog.catalogservice.domain.{Item, Selection}
 import com.thepointmoscow.catalog.catalogservice.service.ItemService
-import com.thepointmoscow.catalog.catalogservice.web.views.{ItemInitView, ItemView, WebFailure, WebResult, WebSuccess}
-import org.springframework.dao.{DataIntegrityViolationException, DuplicateKeyException}
+import com.thepointmoscow.catalog.catalogservice.web.views.{ItemInitView, ItemView, SelectionView, WebFailure, WebResult, WebSuccess}
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.{ServerRequest, ServerResponse}
 import reactor.core.publisher.Mono
 
-import java.util.function.Predicate
 import scala.jdk.javaapi.OptionConverters.toScala
 
 
@@ -22,21 +22,25 @@ class ItemHandler(service: ItemService) {
     val taxId = serverRequest.pathVariable("tax-id")
     val sku = serverRequest.queryParam("sku")
     val nameLike = serverRequest.queryParam("name")
-    val result = if (sku.isPresent) {
+    val result: Mono[Selection[Item]] = if (sku.isPresent) {
       service.findBySku(taxId, sku.get(), maybePage, maybeSize)
     } else if (nameLike.isPresent) {
       service.findByName(taxId, nameLike.get(), maybePage, maybeSize)
     } else {
       service.findAll(taxId, maybePage, maybeSize)
     }
-    result.flatMapMany(_.items)
-      .map(ItemView.apply)
-      .collectList()
-      .map(list => WebSuccess.apply(list))
+    result
+      .flatMap {
+        case Selection(itemsFlux, currentPage, totalPages, size) =>
+          itemsFlux.map(ItemView.apply)
+            .collectList()
+            .map(list => WebSuccess(SelectionView[ItemView](list, currentPage, totalPages, size)))
+      }
       .flatMap(
-        ServerResponse.ok()
-          .contentType(APPLICATION_JSON)
-          .bodyValue(_)
+        response =>
+          ServerResponse.ok()
+            .contentType(APPLICATION_JSON)
+            .bodyValue(response)
       )
   }
 
@@ -47,22 +51,16 @@ class ItemHandler(service: ItemService) {
     initMono
       .flatMap(
         init => service.create(taxId, init)
-        .map[(Int, WebResult[ItemView])](x => 200 -> WebSuccess(ItemView(x)))
+          .map[(Int, WebResult[ItemView])](x => 200 -> WebSuccess(ItemView(x)))
           .onErrorReturn(
             (ex: Throwable) => classOf[DataIntegrityViolationException].isInstance(ex)
             , 400 -> WebFailure(400, s"Товар с указанным кодом SKU уже существует")
           )
       )
-      .flatMap{
+      .flatMap {
         case (code: Int, body: WebResult[ItemView]) =>
           ServerResponse.status(code).contentType(MediaType.APPLICATION_JSON).bodyValue(body)
       }
-//      .onErrorResume(
-//        ex => classOf[DataIntegrityViolationException].isInstance(ex)
-//        , _ => ServerResponse.badRequest()
-//          .contentType(MediaType.APPLICATION_JSON)
-//          .body(WebFailure(400, s"Товар с указанным кодом SKU уже существует"), classOf[WebFailure[_]])
-//      )
   }
 
   def getOne(serverRequest: ServerRequest): Mono[ServerResponse] = {

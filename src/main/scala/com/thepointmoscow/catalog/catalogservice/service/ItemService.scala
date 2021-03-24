@@ -21,18 +21,18 @@ class ItemService(private val repo: ItemRepository) {
   def findAll(taxId: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
     val totalPages = repo.countByTaxIdentity(taxId).map(count => Math.ceil(count.toDouble / pageInfo.getPageSize).toInt)
-    totalPages.map(tp => Selection(repo.findAllByTaxIdentity(taxId, pageInfo), pageInfo.getPageNumber, tp, pageInfo.getPageSize))
+    totalPages.map(tp => Selection(repo.findAllByTaxIdentity(taxId, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
   }
 
   def findByName(taxId: String, name: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
     val totalPages = repo.countByTaxIdentityAndNameIsLike(taxId, name).map(count => Math.ceil(count.toDouble / pageInfo.getPageSize).toInt)
-    totalPages.map(tp => Selection(repo.findAllByTaxIdentityEqualsAndNameIsLike(taxId, name, pageInfo), pageInfo.getPageNumber, tp, pageInfo.getPageSize))
+    totalPages.map(tp => Selection(repo.findAllByTaxIdentityEqualsAndNameIsLike(taxId, name, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
   }
 
   def findBySku(taxId: String, sku: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
-    Mono.just(1).map(tp => Selection(repo.findAllByTaxIdentityEqualsAndSkuEquals(taxId, sku, pageInfo), pageInfo.getPageNumber, tp, pageInfo.getPageSize))
+    Mono.just(1).map(tp => Selection(repo.findAllByTaxIdentityEqualsAndSkuEquals(taxId, sku, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
   }
 
   def create(taxId: String, init: ItemInitView): Mono[Item] = {
