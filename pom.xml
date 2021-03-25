@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.thepointmoscow.catalog</groupId>
     <artifactId>catalog-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.9.0</version>
     <name>catalog-service</name>
     <description>Items catalog for `ecomkassa.ru`</description>
     <properties>
