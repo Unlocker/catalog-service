@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.thepointmoscow.catalog</groupId>
     <artifactId>catalog-service</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.1</version>
     <name>catalog-service</name>
     <description>Items catalog for `ecomkassa.ru`</description>
     <properties>
@@ -41,10 +41,6 @@
             <version>${r2dbc-postgresql.version}</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.zaxxer</groupId>-->
-<!--            <artifactId>HikariCP</artifactId>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -71,10 +67,6 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-jdbc</artifactId>-->
-<!--        </dependency>-->
 
         <dependency>
             <groupId>org.liquibase</groupId>
@@ -160,7 +152,7 @@
                     </execution>
                 </executions>
                 <configuration>
-<!--                    <recompileMode>incremental</recompileMode>-->
+                    <!-- <recompileMode>incremental</recompileMode> -->
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
                         <arg>-deprecation</arg>

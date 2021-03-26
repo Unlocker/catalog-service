@@ -52,4 +52,10 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="2021-03-26T22:45:00+03:00" author="unlocker">
+        <dropTable tableName="users"/>
+
+        <sql>UPDATE items SET vat_type='vat20' WHERE tax_identity='7708317992' AND vat_type='va2t0' AND sku='УМКА-ЛАЙТ'</sql>
+    </changeSet>
 </databaseChangeLog>

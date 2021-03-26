@@ -26,8 +26,9 @@ class ItemService(private val repo: ItemRepository) {
 
   def findByName(taxId: String, name: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
-    val totalPages = repo.countByTaxIdentityAndNameIsLike(taxId, name).map(count => Math.ceil(count.toDouble / pageInfo.getPageSize).toInt)
-    totalPages.map(tp => Selection(repo.findAllByTaxIdentityEqualsAndNameIsLike(taxId, name, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
+    val nameMasked = s"%$name%"
+    val totalPages = repo.countByTaxIdentityAndNameIsLike(taxId, nameMasked).map(count => Math.ceil(count.toDouble / pageInfo.getPageSize).toInt)
+    totalPages.map(tp => Selection(repo.findAllByTaxIdentityEqualsAndNameIsLike(taxId, nameMasked, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
   }
 
   def findBySku(taxId: String, sku: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {

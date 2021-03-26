@@ -105,7 +105,22 @@ class CatalogServiceAppTests() {
       .jsonPath("$.payload.paymentObject").isEqualTo("service")
   }
 
-
+  @Test
+  def testGetItemsByName(): Unit = {
+    webClient.get()
+      .uri("/api/v1/items/{taxid}?name={name}", "7708317992", "накопитель")
+      .headers(_.setBasicAuth("admin", "admin"))
+      .exchange()
+      .expectStatus().isOk()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$.errorCode").isEqualTo(0)
+      .jsonPath("$.payload").isNotEmpty()
+      .jsonPath("$.payload.items").isNotEmpty()
+      .jsonPath("$.payload.currentPage").isEqualTo(1)
+      .jsonPath("$.payload.totalPages").isEqualTo(1)
+      .jsonPath("$.payload.size").isEqualTo(50)
+  }
 
 }
 

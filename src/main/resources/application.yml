@@ -21,5 +21,6 @@ ecom-catalog:
 
 logging:
   level:
-    org.springframework: debug
-
+    root: INFO
+    org.springframework: WARN
+    com.thepointmoscow.catalog: DEBUG
