@@ -73,7 +73,7 @@ class ItemHandler(service: ItemService) {
       .flatMap(
         ServerResponse.ok()
           .contentType(APPLICATION_JSON)
-          .body(_, classOf[WebSuccess[ItemView]])
+          .bodyValue(_)
       )
   }
 
@@ -87,7 +87,7 @@ class ItemHandler(service: ItemService) {
       .flatMap(
         ServerResponse.ok()
           .contentType(APPLICATION_JSON)
-          .body(_, classOf[WebSuccess[ItemView]])
+          .bodyValue(_)
       )
   }
 

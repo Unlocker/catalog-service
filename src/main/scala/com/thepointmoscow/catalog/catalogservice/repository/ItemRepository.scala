@@ -11,9 +11,9 @@ trait ItemRepository extends ReactiveSortingRepository[Item, Long] {
 
   def countByTaxIdentity(taxIdentity: String): Mono[java.lang.Long]
 
-  def findAllByTaxIdentityEqualsAndNameIsLike(taxIdentity: String, name: String, pageRequest: PageRequest): Flux[Item]
+  def findAllByTaxIdentityEqualsAndNameContainingIgnoreCase(taxIdentity: String, name: String, pageRequest: PageRequest): Flux[Item]
 
-  def countByTaxIdentityAndNameIsLike(taxIdentity: String, name: String): Mono[java.lang.Long]
+  def countByTaxIdentityAndNameContainingIgnoreCase(taxIdentity: String, name: String): Mono[java.lang.Long]
 
-  def findAllByTaxIdentityEqualsAndSkuEquals(taxIdentity: String, sku: String, pageRequest: PageRequest): Flux[Item]
+  def findAllByTaxIdentityEqualsAndSkuEqualsIgnoreCase(taxIdentity: String, sku: String, pageRequest: PageRequest): Flux[Item]
 }

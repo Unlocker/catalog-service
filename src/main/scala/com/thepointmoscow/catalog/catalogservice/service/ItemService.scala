@@ -6,14 +6,15 @@ import com.thepointmoscow.catalog.catalogservice.web.views.ItemInitView
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.{PageRequest, Sort}
 import org.springframework.stereotype.Service
-import reactor.core.publisher.{Flux, Mono}
+import reactor.core.publisher.Mono
 
 @Service
 @Autowired
 class ItemService(private val repo: ItemRepository) {
 
   val defaultPage: (Option[Int], Option[Int]) => PageRequest = (maybePage, maybeSize) => {
-    val page = maybePage.filter(_ >= 0).getOrElse(0)
+    // UI page enumeration starts with 1 but DB page enumeration start with 0
+    val page = maybePage.filter(_ >= 1).map(_ - 1).getOrElse(0)
     val size = maybeSize.filter(_ > 0).getOrElse(50)
     PageRequest.of(page, size, Sort.by("name"))
   }
@@ -26,20 +27,21 @@ class ItemService(private val repo: ItemRepository) {
 
   def findByName(taxId: String, name: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
-    val nameMasked = s"%$name%"
-    val totalPages = repo.countByTaxIdentityAndNameIsLike(taxId, nameMasked).map(count => Math.ceil(count.toDouble / pageInfo.getPageSize).toInt)
-    totalPages.map(tp => Selection(repo.findAllByTaxIdentityEqualsAndNameIsLike(taxId, nameMasked, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
+    val nameMasked = name
+    val totalPages = repo.countByTaxIdentityAndNameContainingIgnoreCase(taxId, nameMasked)
+      .map(count => Math.ceil(count.toDouble / pageInfo.getPageSize).toInt)
+    totalPages.map(tp => Selection(repo.findAllByTaxIdentityEqualsAndNameContainingIgnoreCase(taxId, nameMasked, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
   }
 
   def findBySku(taxId: String, sku: String, maybePage: Option[Int], maybeSize: Option[Int]): Mono[Selection[Item]] = {
     val pageInfo = defaultPage(maybePage, maybeSize)
-    Mono.just(1).map(tp => Selection(repo.findAllByTaxIdentityEqualsAndSkuEquals(taxId, sku, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
+    Mono.just(1).map(tp => Selection(repo.findAllByTaxIdentityEqualsAndSkuEqualsIgnoreCase(taxId, sku, pageInfo), pageInfo.getPageNumber + 1, tp, pageInfo.getPageSize))
   }
 
   def create(taxId: String, init: ItemInitView): Mono[Item] = {
     val item = new Item()
     item.setName(init.name)
-    item.setSku(init.sku)
+    item.setSku(init.sku.toUpperCase)
     item.setPrice(init.price)
     item.setVatType(init.vatType)
     item.setPaymentObject(init.paymentObject)
@@ -54,7 +56,7 @@ class ItemService(private val repo: ItemRepository) {
       .map {
         old =>
           old.setName(init.getName)
-          old.setSku(init.getSku)
+          old.setSku(init.getSku.toUpperCase)
           old.setPrice(init.getPrice)
           old.setVatType(init.getVatType)
           old.setPaymentObject(init.getPaymentObject)

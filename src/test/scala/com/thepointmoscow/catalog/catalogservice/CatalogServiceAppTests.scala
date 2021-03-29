@@ -122,6 +122,22 @@ class CatalogServiceAppTests() {
       .jsonPath("$.payload.size").isEqualTo(50)
   }
 
+  @Test
+  def testGetItemById(): Unit = {
+    webClient.get()
+      .uri("/api/v1/items/{taxid}/{itemId}", "7708317992", 894)
+      .headers(_.setBasicAuth("admin", "admin"))
+      .exchange()
+      .expectStatus().isOk()
+      .expectHeader().contentType(MediaType.APPLICATION_JSON)
+      .expectBody()
+      .jsonPath("$.errorCode").isEqualTo(0)
+      .jsonPath("$.payload").isNotEmpty()
+      .jsonPath("$.payload.itemId").isEqualTo(894)
+      .jsonPath("$.payload.taxIdentity").isEqualTo("7708317992")
+      .jsonPath("$.payload.name").isEqualTo("Фискальный накопитель 36 месяцев")
+      .jsonPath("$.payload.sku").isEqualTo("ФН-36")
+  }
 }
 
 @Testcontainers
